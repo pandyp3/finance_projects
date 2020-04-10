@@ -28,7 +28,7 @@ def save_sp500_tickers():
     return tickers
 
 
-# save_sp500_tickers()
+
 def get_data_from_yahoo(reload_sp500=False):
     if reload_sp500:
         tickers = save_sp500_tickers()
@@ -50,8 +50,8 @@ def get_data_from_yahoo(reload_sp500=False):
             print('Already have {}'.format(ticker))
 
 
-# save_sp500_tickers()
-# get_data_from_yahoo()
+#save_sp500_tickers()
+#get_data_from_yahoo()
 
 def clean_up_csv_files():
     folder = 'stock_dfs'
@@ -89,7 +89,7 @@ def compile_data():
     print(main_df.head())
     main_df.to_csv('sp550_combined_close.csv')
     
-# compile_data()
+#compile_data()
 
 def visualize_data():
     df = pd.read_csv('sp550_combined_close.csv')
@@ -119,7 +119,38 @@ def visualize_data():
     plt.show()
    
     
-visualize_data()
+#visualize_data()
+
+def process_data_for_labels(ticker):
+    #labels are the classification
+    #We also need to define our time period
+    hm_days = 7
+    df = pd.read_csv('sp550_combined_close.csv', index_col=0)
+    tickers = df.columns.values.tolist()
+#    print(tickers)
+    df.fillna(0, inplace=True)
+    
+    for i in range(1, hm_days+1):
+        #normalize the data. This calculates the percentage % in price per ticker 
+        df['{}_{}d'.format(ticker, i)] = (df[ticker].shift(-i) - df[ticker]) / df[ticker]
+    
+    df.fillna(0, inplace=True)    
+    return tickers, df
+
+def buy_sell_hold(*args):
+    cols = [c for c in args]
+    requirement = 0.02 #our signal is when price changes (in either direction) by more than 2%
+    for col in cols:
+        if col > requirement:
+            return 1
+        elif col < -requirement:
+            return -1
+        else:
+            return 0
+        
+def extract_featuresets(ticker):
+    tickers, df = process_data_for_labels(ticker)
+    
 
     
 
